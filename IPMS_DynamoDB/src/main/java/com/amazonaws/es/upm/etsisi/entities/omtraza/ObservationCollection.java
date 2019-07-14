@@ -4,13 +4,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Representa una colección de observaciones.
  * @author Guillermo, Yan Liu
  */
-@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonIgnoreProperties("Observation-Collection")
 public class ObservationCollection {
+	@JsonProperty("id")
 	private String id;
 	private Timestamp phenomenomTime;
 	private List<OmMember> members;
@@ -83,8 +85,8 @@ public class ObservationCollection {
 	 */
 	@Override
 	public String toString() {
-		return "\"id\": observation-collection " + id 
-				+ ", \"phenomenomTime\": {" + phenomenomTime + "}, \"member\": [" + members + "]";
+		return  "{\"phenomenomTime\": " + phenomenomTime + ", \"members\": " + members + ""
+				+ "}";
 	}
 	
 }

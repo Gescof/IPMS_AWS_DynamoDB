@@ -8,19 +8,23 @@ import java.text.ParseException;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 
 import com.amazonaws.es.upm.etsisi.entities.mota.MotaMeasure;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.document.DynamoDB;
 import com.amazonaws.services.dynamodbv2.document.Item;
+import com.amazonaws.services.dynamodbv2.document.ItemCollection;
+import com.amazonaws.services.dynamodbv2.document.ScanOutcome;
 import com.amazonaws.services.dynamodbv2.document.Table;
+import com.amazonaws.services.dynamodbv2.document.spec.DeleteItemSpec;
 import com.amazonaws.services.dynamodbv2.document.spec.GetItemSpec;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import com.amazonaws.services.dynamodbv2.document.spec.ScanSpec;
+import com.amazonaws.services.dynamodbv2.document.utils.NameMap;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -47,12 +51,6 @@ public class GestorMotaMeasures {
 	private static final float MAXHUM = 100.0f, MINHUM = 0.0f;
 	private static final float MAXLUM = 100.0f, MINLUM = 0.0f;
 
-//    private static Map<String, AttributeValue> newMotaMeasure(MotaMeasure motaTraza) {
-//        Map<String, AttributeValue> item = new HashMap<String, AttributeValue>();
-//        item.put("motaMeasure", new AttributeValue(motaTraza.toString()));
-//        return item;
-//    }
-	
 	/**
 	 * @param motaMeasure
 	 * @return
@@ -82,7 +80,10 @@ public class GestorMotaMeasures {
 		
         DynamoDB dynamoDB = new DynamoDB(dynamoDBClient);
         Table table = dynamoDB.getTable(TABLENAME);
-        table.putItem(new Item().withPrimaryKey("mota_id", motaMeasure.getMotaId()).withJSON("MotaMeasure", motaMeasure.toString()));
+        table.putItem(new Item().withPrimaryKey("mota_id", motaMeasure.getMotaId())
+        		.withJSON("timestamp", motaMeasure.getTimestamp().toString())
+        		.withJSON("geometry", motaMeasure.getGeometry().toString())
+        		.withJSON("measures", motaMeasure.getMeasures().toString()));
 		result = true;
 		
 		return result;
@@ -94,7 +95,10 @@ public class GestorMotaMeasures {
 	 */
 	public boolean bajaMota(String id, AmazonDynamoDB dynamoDBClient) {
 		boolean result = false;
-		//daoMotaMeasures.deleteByMotaMeasure_motaId(id);
+		DynamoDB dynamoDB = new DynamoDB(dynamoDBClient);
+        Table table = dynamoDB.getTable(TABLENAME);
+		DeleteItemSpec deleteItemSpec = new DeleteItemSpec().withPrimaryKey("mota_id", id);
+		table.deleteItem(deleteItemSpec);
 		result = true;
 		return result;
 	}
@@ -119,9 +123,25 @@ public class GestorMotaMeasures {
 	
 	/**
 	 * @return
+	 * @throws IOException 
+	 * @throws JsonMappingException 
+	 * @throws JsonParseException 
 	 */
-	public List<MotaMeasure> getListaMotaTrazas(AmazonDynamoDB dynamoDBClient) {
-		return null;
+	public List<MotaMeasure> getListaMotaTrazas(AmazonDynamoDB dynamoDBClient) throws JsonParseException, JsonMappingException, IOException {
+		List<MotaMeasure> motaMeasureList = new ArrayList<MotaMeasure>();
+		ObjectMapper objectMapper = new ObjectMapper();
+		DynamoDB dynamoDB = new DynamoDB(dynamoDBClient);
+        Table table = dynamoDB.getTable(TABLENAME);
+        ScanSpec scanSpec = new ScanSpec().withProjectionExpression("#mota_id, geometry, measures, timeDate")
+        		.withNameMap(new NameMap().with("#mota_id", "mota_id"));
+        ItemCollection<ScanOutcome> items = table.scan(scanSpec);
+        Iterator<Item> iter = items.iterator();
+        while (iter.hasNext()) {
+            Item item = iter.next();
+            String motaTrazaStr = item.toJSON();
+            motaMeasureList.add(objectMapper.readValue(motaTrazaStr, MotaMeasure.class));
+        }
+		return motaMeasureList;
 	}
 	
 	/**

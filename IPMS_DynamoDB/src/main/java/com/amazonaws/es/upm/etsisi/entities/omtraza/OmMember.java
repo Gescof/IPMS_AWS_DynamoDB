@@ -1,13 +1,19 @@
 package com.amazonaws.es.upm.etsisi.entities.omtraza;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * Representa un miembro de una OMCollection.
  * @author Guillermo, Yan Liu
  */
 public class OmMember {
+	@JsonProperty("id")
 	private String id;
+	@JsonProperty("type")
 	private String type;
+	@JsonProperty("resultTime")
 	private Timestamp resultTime;
+	@JsonProperty("result")
 	private ResulType resultType;
 	
 	public OmMember() {
@@ -107,7 +113,8 @@ public class OmMember {
 		return "{\"id\": \"" + id 
 				+ "\", \"type\": \"" + type
 				+ "\", \"resultTime\": " + resultTime 
-				+ ", \"result\": {" + resultType + "}";
+				+ ", \"result\": {" + resultType + "}"
+				+ "}";
 	}
 	
 }

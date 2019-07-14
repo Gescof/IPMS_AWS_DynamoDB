@@ -1,11 +1,15 @@
 package com.amazonaws.es.upm.etsisi.entities.mota;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * Representa el resultado de un miembro de una traza.
  * @author Guillermo, Yan Liu
  */
 public class Member {
+	@JsonProperty("value")
 	private float value;
+	@JsonProperty("unit")
 	private String unit;
 	
 	public Member() {}

@@ -2,17 +2,20 @@ package com.amazonaws.es.upm.etsisi.entities.mota;
 
 import java.util.Arrays;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * Representa la geometría que contiene una traza.
  * @author Guillermo, Yan Liu
  *
  */
 public class Geometry {
+	@JsonProperty("type")
 	private String type;
+	@JsonProperty("coordinates")
 	private float[] coordinates;
 	
-	public Geometry()
-	{}
+	public Geometry() {}
 	
 	public Geometry(String type, float[] coordinates) {
 		this.type = type;
@@ -56,7 +59,7 @@ public class Geometry {
 	 */
 	@Override
 	public String toString() {
-		return "\"type\":\"" + type + "\", \"coordinates\":" + Arrays.toString(coordinates);
+		return "{\"type\":\"" + type + "\", \"coordinates\":" + Arrays.toString(coordinates) + "}";
 	}
 	
 }

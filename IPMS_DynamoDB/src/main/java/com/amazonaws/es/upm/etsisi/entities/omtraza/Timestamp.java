@@ -2,8 +2,9 @@ package com.amazonaws.es.upm.etsisi.entities.omtraza;
 
 import java.util.Date;
 
-import com.fasterxml.jackson.annotation.JsonGetter;
-import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 /**
  * Representa una fecha que tenga una traza.
@@ -11,6 +12,9 @@ import com.fasterxml.jackson.annotation.JsonSetter;
  *
  */
 public class Timestamp {
+	@JsonProperty("instant")
+	@JsonDeserialize(using = DateDeserializer.class)
+	@JsonSerialize(using = DateSerializer.class)
 	private Date date;
 
 	public Timestamp()
@@ -26,7 +30,6 @@ public class Timestamp {
 	 * Devuelve la fecha como instante.
 	 * @return Date date
 	 */
-	@JsonGetter("instant")
 	public Date getDate() {
 		return date;
 	}
@@ -35,7 +38,6 @@ public class Timestamp {
 	 * Establece la fecha como instante.
 	 * @param date
 	 */
-	@JsonSetter("instant")
 	public void setDate(Date date) {
 		this.date = date;
 	}
@@ -45,6 +47,6 @@ public class Timestamp {
 	 */
 	@Override
 	public String toString() {
-		return "\"instant\": \"" + date + "\"";
+		return "{\"instant\": \"" + date + "\"}";
 	}
 }

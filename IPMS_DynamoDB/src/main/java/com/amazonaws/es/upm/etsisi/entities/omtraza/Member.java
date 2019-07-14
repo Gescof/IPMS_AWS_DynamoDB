@@ -1,11 +1,15 @@
 package com.amazonaws.es.upm.etsisi.entities.omtraza;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * Representa el resultado de un miembro de una traza.
  * @author Guillermo, Yan Liu
  */
 public class Member implements ResulType {
+	@JsonProperty("value")
 	private float value;
+	@JsonProperty("uom")
 	private String uom;
 	
 	public Member() {}

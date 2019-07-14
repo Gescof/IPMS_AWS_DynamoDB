@@ -2,8 +2,9 @@ package com.amazonaws.es.upm.etsisi.entities.mota;
 
 import java.util.Date;
 
-import com.fasterxml.jackson.annotation.JsonGetter;
-import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 /**
  * Representa una fecha que tenga una traza.
@@ -11,6 +12,9 @@ import com.fasterxml.jackson.annotation.JsonSetter;
  *
  */
 public class Timestamp {
+	@JsonProperty("$date")
+	@JsonDeserialize(using = DateDeserializer.class)
+	@JsonSerialize(using = DateSerializer.class)
 	private Date date;
 
 	public Timestamp()
@@ -26,7 +30,6 @@ public class Timestamp {
 	 * Devuelve la fecha.
 	 * @return Date date
 	 */
-	@JsonGetter("$date")
 	public Date getDate() {
 		return date;
 	}
@@ -35,7 +38,6 @@ public class Timestamp {
 	 * Establece la fecha.
 	 * @param date
 	 */
-	@JsonSetter("$date")
 	public void setDate(Date date) {
 		this.date = date;
 	}

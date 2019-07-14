@@ -3,9 +3,8 @@ package com.amazonaws.es.upm.etsisi.management;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Scanner;
 
 import org.json.JSONObject;
@@ -18,19 +17,19 @@ import com.amazonaws.es.upm.etsisi.entities.omtraza.OmMember;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.document.DynamoDB;
 import com.amazonaws.services.dynamodbv2.document.Item;
+import com.amazonaws.services.dynamodbv2.document.ItemCollection;
+import com.amazonaws.services.dynamodbv2.document.ScanOutcome;
 import com.amazonaws.services.dynamodbv2.document.Table;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import com.amazonaws.services.dynamodbv2.document.spec.DeleteItemSpec;
+import com.amazonaws.services.dynamodbv2.document.spec.GetItemSpec;
+import com.amazonaws.services.dynamodbv2.document.spec.ScanSpec;
+import com.amazonaws.services.dynamodbv2.document.utils.NameMap;
 import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class GestorOmCollections {
 	private final String TABLENAME = "ObservationCollections";
-    
-//    private static Map<String, AttributeValue> newOmTraza(ObservationCollection omTraza) {
-//        Map<String, AttributeValue> item = new HashMap<String, AttributeValue>();
-//        item.put("", new AttributeValue(omTraza.toString()));
-//        return item;
-//    }
 	
 	/**
 	 * Lee el fichero motaMeasures.json
@@ -181,7 +180,9 @@ public class GestorOmCollections {
 		boolean result = false;
         DynamoDB dynamoDB = new DynamoDB(dynamoDBClient);
         Table table = dynamoDB.getTable(TABLENAME);
-        table.putItem(new Item().withPrimaryKey("id", omCollection.getId()).withJSON("Observation-Collection", omCollection.toString()));
+        table.putItem(new Item().withPrimaryKey("id", "observation-collection " + omCollection.getId())
+        		.withJSON("phenomenomTime", omCollection.getPhenomenomTime().toString())
+        		.withJSON("members", omCollection.getMembers().toString()));
 		result = true;
 		return result;
 	}
@@ -192,7 +193,10 @@ public class GestorOmCollections {
 	 */
 	public boolean bajaOmCollection(String id, AmazonDynamoDB dynamoDBClient) {
 		boolean result = false;
-		//daoOmCollections.deleteByOmCollection_id(id);
+		DynamoDB dynamoDB = new DynamoDB(dynamoDBClient);
+        Table table = dynamoDB.getTable(TABLENAME);
+		DeleteItemSpec deleteItemSpec = new DeleteItemSpec().withPrimaryKey("id", id);
+		table.deleteItem(deleteItemSpec);
 		result = true;
 		return result;
 	}
@@ -200,18 +204,78 @@ public class GestorOmCollections {
 	/**
 	 * @param id
 	 * @return
+	 * @throws IOException 
+	 * @throws JsonMappingException 
+	 * @throws JsonParseException 
 	 */
-	public ObservationCollection getOmCollection(String id, AmazonDynamoDB dynamoDBClient) {
-		return null;
+	public ObservationCollection getOmCollection(String id, AmazonDynamoDB dynamoDBClient) throws JsonParseException, JsonMappingException, IOException {
+		DynamoDB dynamoDB = new DynamoDB(dynamoDBClient);
+        Table table = dynamoDB.getTable(TABLENAME);
+		GetItemSpec spec = new GetItemSpec().withPrimaryKey("id", id);
+		Item outcome = table.getItem(spec);
+		ObjectMapper objectMapper = new ObjectMapper();
+		String omCollectionStr = outcome.toJSON();
+		ObservationCollection omCollection = objectMapper.readValue(omCollectionStr, ObservationCollection.class);
+		return omCollection;
+	}
+	
+	/**
+	 * @param id
+	 * @return
+	 * @throws IOException 
+	 * @throws JsonMappingException 
+	 * @throws JsonParseException 
+	 */
+	public String getOmCollectionStr(String id, AmazonDynamoDB dynamoDBClient) throws JsonParseException, JsonMappingException, IOException {
+		DynamoDB dynamoDB = new DynamoDB(dynamoDBClient);
+        Table table = dynamoDB.getTable(TABLENAME);
+		GetItemSpec spec = new GetItemSpec().withPrimaryKey("id", id);
+		Item outcome = table.getItem(spec);
+		return outcome.toJSON();
 	}
 
 	/**
 	 * @return
+	 * @throws IOException 
+	 * @throws JsonMappingException 
+	 * @throws JsonParseException 
 	 */
-	public List<ObservationCollection> getListaOmCollections(AmazonDynamoDB dynamoDBClient) {
-		return null;
+	public List<ObservationCollection> getListaOmCollections(AmazonDynamoDB dynamoDBClient) throws JsonParseException, JsonMappingException, IOException {
+		List<ObservationCollection> omCollectionList = new ArrayList<ObservationCollection>();
+		ObjectMapper objectMapper = new ObjectMapper();
+		DynamoDB dynamoDB = new DynamoDB(dynamoDBClient);
+        Table table = dynamoDB.getTable(TABLENAME);
+        ScanSpec scanSpec = new ScanSpec().withProjectionExpression("#id, members, phenomenomTime")
+        		.withNameMap(new NameMap().with("#id", "id"));
+        ItemCollection<ScanOutcome> items = table.scan(scanSpec);
+        Iterator<Item> iter = items.iterator();
+        while (iter.hasNext()) {
+            Item item = iter.next();
+            String omCollectionStr = item.toJSON();
+            omCollectionList.add(objectMapper.readValue(omCollectionStr, ObservationCollection.class));
+        }
+		return omCollectionList;
 	}
 	
-	
+	/**
+	 * @return
+	 * @throws IOException 
+	 * @throws JsonMappingException 
+	 * @throws JsonParseException 
+	 */
+	public List<String> getListaOmCollectionsStr(AmazonDynamoDB dynamoDBClient) throws JsonParseException, JsonMappingException, IOException {
+		List<String> omCollectionList = new ArrayList<String>();
+		DynamoDB dynamoDB = new DynamoDB(dynamoDBClient);
+        Table table = dynamoDB.getTable(TABLENAME);
+        ScanSpec scanSpec = new ScanSpec().withProjectionExpression("#id, members, phenomenomTime")
+        		.withNameMap(new NameMap().with("#id", "id"));
+        ItemCollection<ScanOutcome> items = table.scan(scanSpec);
+        Iterator<Item> iter = items.iterator();
+        while (iter.hasNext()) {
+            Item item = iter.next();
+            omCollectionList.add(item.toJSON());
+        }
+		return omCollectionList;
+	}
 	
 }

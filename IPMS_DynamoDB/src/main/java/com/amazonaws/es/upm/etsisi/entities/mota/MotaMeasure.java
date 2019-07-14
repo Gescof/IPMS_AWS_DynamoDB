@@ -1,15 +1,15 @@
 package com.amazonaws.es.upm.etsisi.entities.mota;
 
-import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Reperesenta una MotaMeasure.
  * @author Guillermo, Yan Liu
  */
-@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonIgnoreProperties("MotaMeasure")
 public class MotaMeasure {
+	@JsonProperty("mota_id")
 	private String motaId;
 	private Timestamp timestamp;
 	private Geometry geometry;
@@ -21,10 +21,10 @@ public class MotaMeasure {
 		measures = new Measures();
 	}
 	
-	public MotaMeasure(Timestamp timestamp, String motaId, Geometry geometry, Measures measures) {
+	public MotaMeasure(String motaId, Timestamp timestamp, Geometry geometry, Measures measures) {
 		super();
-		this.timestamp = timestamp;
 		this.motaId = motaId;
+		this.timestamp = timestamp;
 		this.geometry = geometry;
 		this.measures = measures;
 	}
@@ -33,7 +33,6 @@ public class MotaMeasure {
 	 * Devuelve el identificador como cadena.
 	 * @return String MotaId
 	 */
-	@JsonGetter("mota_id")
 	public String getMotaId() {
 		return motaId;
 	}
@@ -42,7 +41,6 @@ public class MotaMeasure {
 	 * Establece el identificador de la mota como cadena.
 	 * @param motaId
 	 */
-	@JsonSetter("mota_id")
 	public void setMotaId(String motaId) {
 		this.motaId = motaId;
 	}
@@ -150,8 +148,9 @@ public class MotaMeasure {
 	@Override
 	public String toString() {
 		return "{\"timestamp\": " + timestamp 
-				+ ", \"geometry\": {" + geometry + "}, \"measures\": " + measures 
-				+ ", \"motaId\": \"" + motaId + "\"}";
+				+ ", \"geometry\": " + geometry + ", \"measures\": " + measures 
+				+ ", \"motaId\": \"" + motaId + "\""
+				+ "}";
 	}
 	
 }

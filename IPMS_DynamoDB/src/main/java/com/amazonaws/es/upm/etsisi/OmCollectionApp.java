@@ -1,6 +1,7 @@
 package com.amazonaws.es.upm.etsisi;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.text.ParseException;
 import java.util.List;
 import java.util.Scanner;
@@ -86,11 +87,12 @@ public class OmCollectionApp {
 	 */
 	private static void mostrarMenu() {
 		System.out.println("\nSeleccione una opcion...");
-		System.out.println("1. Generar trazas de motas de fichero (motaMeasures.json) a OM-Collections.");
+		System.out.println("1. Generar trazas de motas de fichero (motaMeasures.json) a OM-Collections (omCollections.json).");
 		System.out.println("2. Alta en AWS DynamoDB de una nueva traza OM-Collection.");
 		System.out.println("3. Baja de AWS DynamoDB de una traza OM-Collection.");
 		System.out.println("4. Buscar una traza de OM-Collection en AWS DynamoDB.");
 		System.out.println("5. Listar todas las trazas de OM-Collections de AWS DynamoDB.");
+		System.out.println("6. Dar de alta de forma masiva trazas estandarizadas en AWS DynamoDB.");
 		System.out.println("0. Salir.");
 	}
 	
@@ -99,12 +101,15 @@ public class OmCollectionApp {
 	 * @throws IOException
 	 */
 	private static void generarTrazas() throws ParseException, IOException {
-		List<JSONObject> listaOmTrazas = gestorOmCollections.loadOmJsonFromFile(dynamoDBClient);
+		PrintWriter writer = new PrintWriter("S:\\sources\\omCollections.json");
+		List<JSONObject> listaOmTrazas = gestorOmCollections.loadOmJsonFromFile();
 		if(!listaOmTrazas.isEmpty()) {
 			listaOmTrazas.forEach(omTraza->System.out.println(omTraza));
+			listaOmTrazas.forEach(omTraza->writer.println(omTraza.toString()));
 		} else {
 			System.out.println("Fichero vacio.");
 		}
+		writer.close();
 	}
 	
 	/**
@@ -202,6 +207,15 @@ public class OmCollectionApp {
 			System.out.println("Lista de trazas vacia.");
 		}
 	}
+	
+	private static void cargaMasiva() throws JsonParseException, IOException {
+		long startTime = System.nanoTime();
+		List<MotaMeasure> listaMotaTrazas = gestorMotas.getListaMotaTrazas(dynamoDBClient);
+		gestorOmCollections.cargaMasivaTrazas(listaMotaTrazas, dynamoDBClient);
+		long endTime = System.nanoTime();
+		long duration = (endTime - startTime);  //divide by 1000000 to get milliseconds.
+		System.out.println("Tiempo de ejecucion total: " + duration);
+	}
     
     public static void main(String... args) {
     	try {
@@ -227,6 +241,9 @@ public class OmCollectionApp {
 				case "5":
 					//listarTrazas();
 					listarTrazasStr();
+					break;
+				case "6":
+					cargaMasiva();
 					break;
 				case "0":
 					System.out.println("Fin del programa.");

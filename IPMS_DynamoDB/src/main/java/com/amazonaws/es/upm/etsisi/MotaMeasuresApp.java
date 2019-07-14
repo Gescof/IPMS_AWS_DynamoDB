@@ -87,6 +87,7 @@ public class MotaMeasuresApp {
 		System.out.println("3. Baja de AWS DynamoDB de una traza de mota.");
 		System.out.println("4. Buscar una traza de mota en AWS DynamoDB.");
 		System.out.println("5. Listar todas las trazas de motas de AWS DynamoDB.");
+		System.out.println("6. Dar de alta de forma masiva trazas en AWS DynamoDB.");
 		System.out.println("0. Salir.");
 	}
 	
@@ -158,6 +159,14 @@ public class MotaMeasuresApp {
 		}
 	}
 	
+	private static void cargaMasiva() throws JsonParseException, IOException {
+		long startTime = System.nanoTime();
+		gestorMotas.cargaMasivaTrazas(dynamoDBClient);
+		long endTime = System.nanoTime();
+		long duration = (endTime - startTime);  //divide by 1000000 to get milliseconds.
+		System.out.println("Tiempo de ejecucion total: " + duration);
+	}
+	
 	public static void main(String... args) {
 		try {
 			init();
@@ -180,6 +189,9 @@ public class MotaMeasuresApp {
 					break;
 				case "5":
 					listarTrazas();
+					break;
+				case "6":
+					cargaMasiva();
 					break;
 				case "0":
 					System.out.println("Fin del programa.");

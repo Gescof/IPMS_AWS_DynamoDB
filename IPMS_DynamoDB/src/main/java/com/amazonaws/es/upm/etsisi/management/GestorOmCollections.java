@@ -38,7 +38,7 @@ public class GestorOmCollections {
 	 * @throws JsonParseException
 	 * @throws IOException
 	 */
-	public List<JSONObject> loadOmJsonFromFile(AmazonDynamoDB dynamoDBClient) throws JsonParseException, IOException {
+	public List<JSONObject> loadOmJsonFromFile() throws JsonParseException, IOException {
 		System.out.println("Buscando fichero de prueba en S:\\sources\\motaMeasures.json...");
 		File readFile = new File("S:\\sources\\motaMeasures.json");
 		Scanner scanner = new Scanner(readFile);
@@ -56,7 +56,7 @@ public class GestorOmCollections {
 		while (scanner.hasNext()) {
 			motaTrazaStr = scanner.next();
 			MotaMeasure motaTraza = objectMapper.readValue(motaTrazaStr, MotaMeasure.class);
-			omTraza.setId(motaTraza.getMotaId());
+			omTraza.setId("observation-collection " + motaTraza.getMotaId());
 			omTraza.getPhenomenomTime().setDate(motaTraza.getTimestamp().getDate());
 			
 			geometry = new Geometry();
@@ -106,7 +106,7 @@ public class GestorOmCollections {
 		scanner.close();
 		return jsonArrayList;
 	}
-
+	
 	/**
 	 * Obtiene un documento sin estandarizar proveniente 
 	 * de la tabla no estandarizada en AWS DynamoDB,
@@ -122,7 +122,7 @@ public class GestorOmCollections {
 		Geometry geometry;
 		Member member;
 
-		omTraza.setId(motaMeasure.getMotaId());
+		omTraza.setId("observation-collection" + motaMeasure.getMotaId());
 		omTraza.getPhenomenomTime().setDate(motaMeasure.getTimestamp().getDate());
 		
 		geometry = new Geometry();
@@ -276,6 +276,72 @@ public class GestorOmCollections {
             omCollectionList.add(item.toJSON());
         }
 		return omCollectionList;
+	}
+	
+	public void cargaMasivaTrazas(List<MotaMeasure> listaMotaTrazas, AmazonDynamoDB dynamoDBClient) throws JsonParseException, IOException {
+		List<ObservationCollection> listaOmCollections = new ArrayList<ObservationCollection>();
+		for (MotaMeasure motaMeasure : listaMotaTrazas) {
+			ObservationCollection omTraza = new ObservationCollection();
+			List<OmMember> members = new ArrayList<OmMember>();
+			OmMember omMember;
+			Geometry geometry;
+			Member member;
+
+			omTraza.setId("observation-collection " + motaMeasure.getMotaId());
+			omTraza.getPhenomenomTime().setDate(motaMeasure.getTimestamp().getDate());
+			
+			geometry = new Geometry();
+			geometry.setType("Point");
+			geometry.setCoordinates(motaMeasure.getGeometry().getCoordinates());
+			omMember = new OmMember();
+			omMember.setId("geometry" + motaMeasure.getMotaId());
+			omMember.setType("Geometry-Observation");
+			omMember.getResultTime().setDate(motaMeasure.getTimestamp().getDate());
+			omMember.setResultType(geometry);
+			members.add(omMember);
+			
+			member = new Member();
+			member.setValue(motaMeasure.getMeasures().getTemperature().getValue());
+			member.setUom("https://en.wikipedia.org/wiki/Celsius");
+			omMember = new OmMember();
+			omMember.setId("temperature" + motaMeasure.getMotaId());
+			omMember.setType("Category-Observation");
+			omMember.getResultTime().setDate(motaMeasure.getTimestamp().getDate());
+			omMember.setResultType(member);
+			members.add(omMember);
+			
+			member = new Member();
+			member.setValue(motaMeasure.getMeasures().getHumidity().getValue());
+			member.setUom("https://en.wikipedia.org/wiki/Relative_humidity");
+			omMember = new OmMember();
+			omMember.setId("humidity" + motaMeasure.getMotaId());
+			omMember.setType("Category-Observation");
+			omMember.getResultTime().setDate(motaMeasure.getTimestamp().getDate());
+			omMember.setResultType(member);
+			members.add(omMember);
+
+			member = new Member();
+			member.setValue(motaMeasure.getMeasures().getLuminosity().getValue());
+			member.setUom("https://en.wikipedia.org/wiki/Lux");
+			omMember = new OmMember();
+			omMember.setId("luminosity" + motaMeasure.getMotaId());
+			omMember.setType("Category-Observation");
+			omMember.getResultTime().setDate(motaMeasure.getTimestamp().getDate());
+			omMember.setResultType(member);
+			members.add(omMember);
+
+			omTraza.setMembers(members);
+			listaOmCollections.add(omTraza);
+		}
+		DynamoDB dynamoDB = new DynamoDB(dynamoDBClient);
+        Table table = dynamoDB.getTable(TABLENAME);
+		System.out.println("Cargando de forma masiva en DynamoDB...");
+		for (ObservationCollection observationCollection : listaOmCollections) {
+	        table.putItem(new Item().withPrimaryKey("id", observationCollection.getId())
+            		.withJSON("phenomenomTime", observationCollection.getPhenomenomTime().toString())
+            		.withJSON("members", observationCollection.getMembers().toString()));
+        	System.out.println("Traza añadida con exito: " + observationCollection.toString());
+		}
 	}
 	
 }

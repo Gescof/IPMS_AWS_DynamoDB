@@ -1,5 +1,6 @@
 package com.amazonaws.es.upm.etsisi.management;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -13,6 +14,7 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
+import java.util.Scanner;
 
 import com.amazonaws.es.upm.etsisi.entities.mota.MotaMeasure;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
@@ -187,6 +189,28 @@ public class GestorMotaMeasures {
 			e.printStackTrace();
 		}
 		System.out.println("Fichero generado.");
+	}
+	
+	public void cargaMasivaTrazas(AmazonDynamoDB dynamoDBClient) throws JsonParseException, IOException {
+		DynamoDB dynamoDB = new DynamoDB(dynamoDBClient);
+        Table table = dynamoDB.getTable(TABLENAME);
+        System.out.println("Buscando fichero de prueba en S:\\sources\\motaMeasures.json...");
+		File readFile = new File("S:\\sources\\motaMeasures.json");
+		Scanner scanner = new Scanner(readFile);
+		System.out.println("Fichero cargado con exito");
+		String motaTrazaStr;
+		ObjectMapper objectMapper = new ObjectMapper();
+		System.out.println("Cargando de forma masiva en DynamoDB...");
+        while (scanner.hasNext()) {
+        	motaTrazaStr = scanner.next();
+        	MotaMeasure motaTraza = objectMapper.readValue(motaTrazaStr, MotaMeasure.class);
+        	table.putItem(new Item().withPrimaryKey("mota_id", motaTraza.getMotaId())
+            		.withJSON("timestamp", motaTraza.getTimestamp().toString())
+            		.withJSON("geometry", motaTraza.getGeometry().toString())
+            		.withJSON("measures", motaTraza.getMeasures().toString()));
+        	System.out.println("Traza añadida con exito: " + motaTraza.toString());
+        }
+        scanner.close();
 	}
 	
 }

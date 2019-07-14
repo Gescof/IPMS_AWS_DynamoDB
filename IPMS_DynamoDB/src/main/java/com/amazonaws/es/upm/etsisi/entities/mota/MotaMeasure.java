@@ -10,7 +10,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @JsonIgnoreProperties("MotaMeasure")
 public class MotaMeasure {
 	@JsonProperty("mota_id")
-	private String motaId;
+	private String mota_id;
 	private Timestamp timestamp;
 	private Geometry geometry;
 	private Measures measures;
@@ -21,9 +21,9 @@ public class MotaMeasure {
 		measures = new Measures();
 	}
 	
-	public MotaMeasure(String motaId, Timestamp timestamp, Geometry geometry, Measures measures) {
+	public MotaMeasure(String mota_id, Timestamp timestamp, Geometry geometry, Measures measures) {
 		super();
-		this.motaId = motaId;
+		this.mota_id = mota_id;
 		this.timestamp = timestamp;
 		this.geometry = geometry;
 		this.measures = measures;
@@ -34,7 +34,7 @@ public class MotaMeasure {
 	 * @return String MotaId
 	 */
 	public String getMotaId() {
-		return motaId;
+		return mota_id;
 	}
 	
 	/**
@@ -42,7 +42,7 @@ public class MotaMeasure {
 	 * @param motaId
 	 */
 	public void setMotaId(String motaId) {
-		this.motaId = motaId;
+		this.mota_id = motaId;
 	}
 	
 	/**
@@ -105,7 +105,7 @@ public class MotaMeasure {
 		int result = 1;
 		result = prime * result + ((geometry == null) ? 0 : geometry.hashCode());
 		result = prime * result + ((measures == null) ? 0 : measures.hashCode());
-		result = prime * result + ((motaId == null) ? 0 : motaId.hashCode());
+		result = prime * result + ((mota_id == null) ? 0 : mota_id.hashCode());
 		result = prime * result + ((timestamp == null) ? 0 : timestamp.hashCode());
 		return result;
 	}
@@ -129,10 +129,10 @@ public class MotaMeasure {
 				return false;
 		} else if (!measures.equals(other.measures))
 			return false;
-		if (motaId == null) {
-			if (other.motaId != null)
+		if (mota_id == null) {
+			if (other.mota_id != null)
 				return false;
-		} else if (!motaId.equals(other.motaId))
+		} else if (!mota_id.equals(other.mota_id))
 			return false;
 		if (timestamp == null) {
 			if (other.timestamp != null)
@@ -149,7 +149,7 @@ public class MotaMeasure {
 	public String toString() {
 		return "{\"timestamp\": " + timestamp 
 				+ ", \"geometry\": " + geometry + ", \"measures\": " + measures 
-				+ ", \"motaId\": \"" + motaId + "\""
+				+ ", \"mota_id\": \"" + mota_id + "\""
 				+ "}";
 	}
 	
